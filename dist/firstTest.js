@@ -84,3 +84,4 @@ exports.app.get('/addresses/:id', (req, res) => {
 exports.app.listen(port, () => {
     console.log(`ФУУУЙЙ БАЛЯЯ, сервер с кайфом запущен ${port}`);
 });
+//# sourceMappingURL=firstTest.js.map

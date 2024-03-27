@@ -179,3 +179,4 @@ exports.videosRouter.delete('/:id', (req, res) => {
         res.sendStatus(204);
     }
 });
+//# sourceMappingURL=Videos-router.js.map

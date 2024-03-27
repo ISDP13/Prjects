@@ -44,3 +44,4 @@ exports.app.delete('/testing/all-data', (req, res) => {
     videos.length = 0;
     res.sendStatus(204);
 });
+//# sourceMappingURL=Videos.js.map
