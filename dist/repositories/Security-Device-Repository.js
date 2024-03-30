@@ -24,20 +24,42 @@ exports.deviceMap = deviceMap;
 exports.securityDeviceRepository = {
     findDevices(refreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
-            // тут надо найти пользователя по рефреш токену и потом засунуть этого пользователя и найти по нему девайся
-            const user = yield JWT_service_1.jwtService.getUserIdByRefreshToken(refreshToken);
-            const devices = yield db_1.securityDeviceCollection.findOne({ userId: user._id });
-            return (0, exports.deviceMap)(devices);
+            //TODO тут надо найти пользователя по рефреш токену и потом засунуть этого пользователя и найти по нему девайся
+            const userId = yield JWT_service_1.jwtService.getUserIdByRefreshToken(refreshToken);
+            const devices = yield db_1.securityDeviceCollection.find({ userId: userId }).toArray();
+            return devices.map(exports.deviceMap);
         });
     },
     deleteDevicesExcludeCurrent(refreshToken) {
         return __awaiter(this, void 0, void 0, function* () {
-            yield db_1.securityDeviceCollection.deleteMany({ _id: { $nin: [refreshToken] } }); // todo вот тут ошибка скорей всего
+            // Получение идентификатора пользователя по refresh token
+            const userId = yield JWT_service_1.jwtService.getUserIdByRefreshToken(refreshToken); // Предположим, что есть метод для получения идентификатора пользователя из cookies
+            // Получение текущего девайса пользователя
+            const currentUserDevice = yield db_1.securityDeviceCollection.findOne({ userId: userId });
+            if (!currentUserDevice)
+                return null;
+            // Удаление всех девайсов, кроме текущего
+            // TODO не удалвяет девайсы, потому что в рефреш токене зашита не девайс айди, а юзер айди
+            yield db_1.securityDeviceCollection.deleteMany({ userId: { $ne: currentUserDevice.userId } });
         });
     },
     deleteDeviceById(id) {
         return __awaiter(this, void 0, void 0, function* () {
             yield db_1.securityDeviceCollection.deleteOne({ _id: id });
+        });
+    },
+    createNewDeviceAccess(user, ip) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const userId = user._id;
+            let newDeviceAccess = {
+                _id: crypto.randomUUID(),
+                userId: userId,
+                ip: ip,
+                title: 'some string',
+                lastActiveDate: new Date().toISOString()
+            };
+            yield db_1.securityDeviceCollection.insertOne(newDeviceAccess);
+            return newDeviceAccess;
         });
     }
 };

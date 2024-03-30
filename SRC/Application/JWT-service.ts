@@ -7,7 +7,7 @@ import {ObjectId} from "mongodb";
 export const jwtService = {
 
     async createJWT(user: UserAccountDBType){
-        const token = jwt.sign({userId: user._id}, settings.JWT_SECRET, {expiresIn: '10s'})
+        const token = jwt.sign({userId: user._id}, settings.JWT_SECRET, {expiresIn: '1000000s'})
         return token
     },
 
@@ -21,7 +21,8 @@ export const jwtService = {
     },
 
     async createRefreshJWT(user: UserAccountDBType){
-        const refreshToken = jwt.sign({userId: user._id}, settings.JWT_REFRESH_SECRET, {expiresIn: '20s'})
+        // вот сюда надо засунуть рефреш токен айди, но тогда когда мы ищем юезра по рефреш токену, уже надо будет доставать из девайс айди айдишник юзера и только потом искать юзера
+        const refreshToken = jwt.sign({userId: user._id}, settings.JWT_REFRESH_SECRET, {expiresIn: '20000000s'})
         return refreshToken
     },
 

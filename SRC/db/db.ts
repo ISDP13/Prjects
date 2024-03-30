@@ -20,6 +20,7 @@ export const feedbackCollection = db.collection<FeedbackDbType>('Feedback')
 export const usersAccountCollection = db.collection<UserAccountDBType>('UsersAccounts')
 export const tokenBlackListCollection = db.collection<RefreshTokenDbType>('Token_Black_List')
 export const securityDeviceCollection = db.collection<DeviceDbType>('Security Devices')
+export const requestsToUrlCollection = db.collection<any>('Amount Requests to URL')
 
 
 console.log(process.env.MONGO_URL)

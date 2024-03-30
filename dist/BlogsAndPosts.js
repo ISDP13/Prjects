@@ -29,6 +29,7 @@ exports.app = (0, express_1.default)();
 exports.app.use(express_1.default.json());
 exports.app.use((0, body_parser_1.default)());
 exports.app.use((0, cookie_parser_1.default)());
+exports.app.set('trust proxy', true);
 const port = 3000;
 exports.app.use('/blogs', Blog_router_1.blogsRouter);
 exports.app.use('/posts', Post_router_1.PostsRouter);

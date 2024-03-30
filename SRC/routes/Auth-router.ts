@@ -8,6 +8,8 @@ import {userRepository} from "../repositories/User-Repository-Mongo";
 import {codeEmailValidation, emailUserValidation, userValidation} from "../Validation/User-Validation";
 import cookieParser from "cookie-parser";
 import {tokenBlackListCollection} from "../db/db";
+import {securityDeviceRepository} from "../repositories/Security-Device-Repository";
+import {accessRequestValidation} from "../Middleware/Request-Middleware";
 
 
 export const authRouter = Router({})
@@ -16,21 +18,28 @@ export type RefreshTokenDbType = {
     token: string
 }
 
-authRouter.post('/login', async (req: Request, res: Response) => {
-    const user = await userService.checkCredential(req.body.loginOrEmail, req.body.password)
+authRouter.post('/login',accessRequestValidation, async (req: Request, res: Response) => {
 
-    if (!user) return res.sendStatus(401) // .send({user,allUsers})
+    // TODO Юзер агент какой то подключить
+
+    const user = await userService.checkCredential(req.body.loginOrEmail, req.body.password)
+    if (!user) return res.sendStatus(401)
 
     const token = await jwtService.createJWT(user)
-    const refreshToken = await jwtService.createRefreshJWT(user)
-    const cookie_name = req.cookies.cookie_name
 
-    // 1 вариант) вот тут скорей всего придется рефреш токен занести в датабейс к юзеру
-    // 2 вариант (более надежный и правильынй))хотя мы можем найти так же по верифай токену, удалить прошлые токены и вернуть 2 новых токена
-    //const userIdByRefreshToken = await jwtService.getUserIdByRefreshToken(refreshToken)
+    // вот тут сейчас добавилось создание девайс акцесса и занос его в базу данных с айпи
+
+    const ip = req.ip
+
+    const device = await securityDeviceRepository.createNewDeviceAccess(user, ip!)
+
+    // в рефреш токен засовываем девайс айди
+    const refreshToken = await jwtService.createRefreshJWT(user)
+
+
 
     res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
-    res.status(200).send({accessToken: token})
+    res.status(200).send({accessToken: token, device})
 
 })
 
@@ -47,7 +56,8 @@ authRouter.get('/me', authUserMiddleware, async (req, res) => {
 
 })
 
-authRouter.post('/registration', userValidation(), async (req: Request, res: Response) => {
+authRouter.post('/registration', userValidation(),accessRequestValidation, async (req: Request, res: Response) => {
+
 
     await userService.registrationNewUser(req.body.login, req.body.password, req.body.email)
 
@@ -55,7 +65,8 @@ authRouter.post('/registration', userValidation(), async (req: Request, res: Res
 
 })
 
-authRouter.post('/registration-confirmation', codeEmailValidation(), async (req: Request, res: Response) => {
+authRouter.post('/registration-confirmation', codeEmailValidation(),accessRequestValidation, async (req: Request, res: Response) => {
+
 
     let code = await userService.confirmEmail(req.body.code)
 
@@ -64,7 +75,7 @@ authRouter.post('/registration-confirmation', codeEmailValidation(), async (req:
     return res.sendStatus(204)
 })
 
-authRouter.post('/registration-email-resending', emailUserValidation(), async (req: Request, res: Response) => {
+authRouter.post('/registration-email-resending', emailUserValidation(),accessRequestValidation, async (req: Request, res: Response) => {
 
     await userService.resendConfirmationCode(req.body.email)
 

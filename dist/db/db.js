@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runDb = exports.securityDeviceCollection = exports.tokenBlackListCollection = exports.usersAccountCollection = exports.feedbackCollection = exports.userCollection = exports.postsCollection = exports.blogCollection = exports.db = exports.client = void 0;
+exports.runDb = exports.requestsToUrlCollection = exports.securityDeviceCollection = exports.tokenBlackListCollection = exports.usersAccountCollection = exports.feedbackCollection = exports.userCollection = exports.postsCollection = exports.blogCollection = exports.db = exports.client = void 0;
 const mongodb_1 = require("mongodb");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -26,6 +26,7 @@ exports.feedbackCollection = exports.db.collection('Feedback');
 exports.usersAccountCollection = exports.db.collection('UsersAccounts');
 exports.tokenBlackListCollection = exports.db.collection('Token_Black_List');
 exports.securityDeviceCollection = exports.db.collection('Security Devices');
+exports.requestsToUrlCollection = exports.db.collection('Amount Requests to URL');
 console.log(process.env.MONGO_URL);
 function runDb() {
     return __awaiter(this, void 0, void 0, function* () {

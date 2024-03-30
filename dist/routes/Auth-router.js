@@ -17,19 +17,22 @@ const query_Users_Repo_1 = require("../queryRepositories/query-Users-Repo");
 const AuthUserMiddleware_1 = require("../Middleware/AuthUserMiddleware");
 const User_Validation_1 = require("../Validation/User-Validation");
 const db_1 = require("../db/db");
+const Security_Device_Repository_1 = require("../repositories/Security-Device-Repository");
+const Request_Middleware_1 = require("../Middleware/Request-Middleware");
 exports.authRouter = (0, express_1.Router)({});
-exports.authRouter.post('/login', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/login', Request_Middleware_1.accessRequestValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // TODO Юзер агент какой то подключить
     const user = yield User_service_1.userService.checkCredential(req.body.loginOrEmail, req.body.password);
     if (!user)
-        return res.sendStatus(401); // .send({user,allUsers})
+        return res.sendStatus(401);
     const token = yield JWT_service_1.jwtService.createJWT(user);
+    // вот тут сейчас добавилось создание девайс акцесса и занос его в базу данных с айпи
+    const ip = req.ip;
+    const device = yield Security_Device_Repository_1.securityDeviceRepository.createNewDeviceAccess(user, ip);
+    // в рефреш токен засовываем девайс айди
     const refreshToken = yield JWT_service_1.jwtService.createRefreshJWT(user);
-    const cookie_name = req.cookies.cookie_name;
-    // 1 вариант) вот тут скорей всего придется рефреш токен занести в датабейс к юзеру
-    // 2 вариант (более надежный и правильынй))хотя мы можем найти так же по верифай токену, удалить прошлые токены и вернуть 2 новых токена
-    //const userIdByRefreshToken = await jwtService.getUserIdByRefreshToken(refreshToken)
     res.cookie('refreshToken', refreshToken, { httpOnly: true, secure: true });
-    res.status(200).send({ accessToken: token });
+    res.status(200).send({ accessToken: token, device });
 }));
 exports.authRouter.get('/me', AuthUserMiddleware_1.authUserMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield query_Users_Repo_1.usersQueryRepository.findUserAccountById(req.user._id);
@@ -41,17 +44,17 @@ exports.authRouter.get('/me', AuthUserMiddleware_1.authUserMiddleware, (req, res
         userId: user._id
     });
 }));
-exports.authRouter.post('/registration', (0, User_Validation_1.userValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/registration', (0, User_Validation_1.userValidation)(), Request_Middleware_1.accessRequestValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield User_service_1.userService.registrationNewUser(req.body.login, req.body.password, req.body.email);
     return res.sendStatus(204);
 }));
-exports.authRouter.post('/registration-confirmation', (0, User_Validation_1.codeEmailValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/registration-confirmation', (0, User_Validation_1.codeEmailValidation)(), Request_Middleware_1.accessRequestValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     let code = yield User_service_1.userService.confirmEmail(req.body.code);
     if (!code)
         return res.sendStatus(400);
     return res.sendStatus(204);
 }));
-exports.authRouter.post('/registration-email-resending', (0, User_Validation_1.emailUserValidation)(), (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.authRouter.post('/registration-email-resending', (0, User_Validation_1.emailUserValidation)(), Request_Middleware_1.accessRequestValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     yield User_service_1.userService.resendConfirmationCode(req.body.email);
     return res.sendStatus(204);
 }));

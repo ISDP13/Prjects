@@ -142,10 +142,4 @@ export const userService = {
 
     },
 
-    async checkAccessToken (token: string){
-        const auth = token.split(' ')
-
-        if(auth[0] !== 'Bearer') return
-
-    }
 }

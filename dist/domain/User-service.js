@@ -128,12 +128,5 @@ exports.userService = {
             }
         });
     },
-    checkAccessToken(token) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const auth = token.split(' ');
-            if (auth[0] !== 'Bearer')
-                return;
-        });
-    }
 };
 //# sourceMappingURL=User-service.js.map

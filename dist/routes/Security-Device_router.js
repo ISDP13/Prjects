@@ -18,12 +18,11 @@ exports.securityDevicesRouter.get('/devices', (req, res) => __awaiter(void 0, vo
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken)
         return res.sendStatus(401);
+    // TODO вынести эту хуйню с 401 ошибкой в мидлвар
     const findRefreshToken = yield db_1.tokenBlackListCollection.findOne({ token: refreshToken });
     if (findRefreshToken)
         return res.sendStatus(401);
     const allDevices = yield Security_Device_Repository_1.securityDeviceRepository.findDevices(refreshToken);
-    // todo Спросить про массив
-    // TODO спросить про отслеживание апишника
     res.status(200).send(allDevices);
 }));
 exports.securityDevicesRouter.delete('/devices', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -31,6 +30,7 @@ exports.securityDevicesRouter.delete('/devices', (req, res) => __awaiter(void 0,
     if (!refreshToken)
         return res.sendStatus(401);
     yield Security_Device_Repository_1.securityDeviceRepository.deleteDevicesExcludeCurrent(refreshToken);
+    return res.sendStatus(204);
     //TODO Девайс айди запихнуть в рефреш токен
 }));
 exports.securityDevicesRouter.delete('/devices/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -40,6 +40,7 @@ exports.securityDevicesRouter.delete('/devices/:id', (req, res) => __awaiter(voi
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken)
         return res.sendStatus(401);
+    // TODO вынести эту хуйню с 401 ошибкой в мидлвар
     const findRefreshToken = yield db_1.tokenBlackListCollection.findOne({ token: refreshToken });
     if (findRefreshToken)
         return res.sendStatus(401);

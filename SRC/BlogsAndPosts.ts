@@ -16,6 +16,7 @@ export const app = express()
 app.use(express.json())
 app.use(bodyParser())
 app.use(cookieParser())
+app.set('trust proxy', true)
 const port = 3000
 
 
