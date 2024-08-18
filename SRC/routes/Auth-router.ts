@@ -20,26 +20,43 @@ export type RefreshTokenDbType = {
 
 authRouter.post('/login',accessRequestValidation, async (req: Request, res: Response) => {
 
-    // TODO Юзер агент какой то подключить
-
     const user = await userService.checkCredential(req.body.loginOrEmail, req.body.password)
     if (!user) return res.sendStatus(401)
 
     const token = await jwtService.createJWT(user)
 
-    // вот тут сейчас добавилось создание девайс акцесса и занос его в базу данных с айпи
-
     const ip = req.ip
 
-    const device = await securityDeviceRepository.createNewDeviceAccess(user, ip!)
+    const userAgent = req.headers["user-agent"]
+
+    const device = await securityDeviceRepository.createNewDeviceAccess(user, ip!, userAgent!)
 
     // в рефреш токен засовываем девайс айди
-    const refreshToken = await jwtService.createRefreshJWT(user)
-
+    const refreshToken = await jwtService.createRefreshJWT(device)
 
 
     res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: true})
-    res.status(200).send({accessToken: token, device})
+    res.status(200).send({accessToken: token})
+
+})
+
+authRouter.post('/password-recovery', async (req: Request, res: Response)=>{
+    // TODO insert validation for email and access validation
+    const code = await userService.recoveryPasswordCode(req.body.email)
+    if(!code) res.sendStatus(404)
+
+    return res.sendStatus(204)
+})
+
+authRouter.post('/new-password', async (req: Request, res: Response)=>{
+
+    // TODO insert validation for email and access validation
+    const user = await userRepository.findUserByConfirmationCode(req.body.recoveryCode)
+    if(!user) return res.sendStatus(404)
+
+    await userService.newPassword(req.body.code, req.body.password)
+
+    return res.sendStatus(204)
 
 })
 
@@ -65,11 +82,10 @@ authRouter.post('/registration', userValidation(),accessRequestValidation, async
 
 })
 
-authRouter.post('/registration-confirmation', codeEmailValidation(),accessRequestValidation, async (req: Request, res: Response) => {
+authRouter.post('/registration-confirmation',accessRequestValidation,codeEmailValidation(), async (req: Request, res: Response) => {
 
 
     let code = await userService.confirmEmail(req.body.code)
-
     if (!code) return res.sendStatus(400)
 
     return res.sendStatus(204)
@@ -109,7 +125,13 @@ authRouter.post('/refresh-token', async (req: Request, res: Response) => {
 
     const newToken = await jwtService.createJWT(user!)
 
-    const newRefreshToken = await jwtService.createRefreshJWT(user!)
+    const device = await securityDeviceRepository.findDeviceByUserId(user!._id)
+
+    const newRefreshToken = await jwtService.createRefreshJWT(device!)
+
+    const newDate = new Date().toISOString()
+
+    await securityDeviceRepository.updateDate(device!, newDate)
 
     res.cookie('refreshToken', newRefreshToken, {httpOnly: true, secure: true}).send({accessToken: newToken})
 
@@ -134,8 +156,10 @@ authRouter.post('/logout', async (req: Request, res: Response) => {
     }
 
     const userIdByRefreshToken = await jwtService.getUserIdByRefreshToken(refreshToken)
-
     if(!userIdByRefreshToken) return res.sendStatus(401)
+
+    const device = await jwtService.findDeviceByRefreshToken(refreshToken)
+    await securityDeviceRepository.deleteDeviceById(device._id)
 
     res.clearCookie('refreshToken', {httpOnly: true, secure: true}).sendStatus(204)
 

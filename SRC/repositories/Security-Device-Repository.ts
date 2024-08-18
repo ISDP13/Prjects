@@ -30,46 +30,56 @@ export const deviceMap = (device: DeviceDbType): DeviceOutputType => {
 export const securityDeviceRepository = {
 
     async findDevices(refreshToken: string): Promise<DeviceOutputType[]> {
-        //TODO тут надо найти пользователя по рефреш токену и потом засунуть этого пользователя и найти по нему девайся
+
         const userId = await jwtService.getUserIdByRefreshToken(refreshToken)
+
         const devices = await securityDeviceCollection.find({userId: userId}).toArray()
+
         return devices.map(deviceMap)
+    },
+
+    async findDeviceById(id: string):Promise<DeviceDbType | null>{
+      return securityDeviceCollection.findOne({_id: id})
+    },
+
+    async findDeviceByUserId(userId: string):Promise<DeviceDbType | null>{
+        return await securityDeviceCollection.findOne({userId: userId})
     },
 
     async deleteDevicesExcludeCurrent(refreshToken: string) {
 
-        // Получение идентификатора пользователя по refresh token
-         const userId = await jwtService.getUserIdByRefreshToken(refreshToken) // Предположим, что есть метод для получения идентификатора пользователя из cookies
+         const userId = await jwtService.getUserIdByRefreshToken(refreshToken)
 
-        // Получение текущего девайса пользователя
         const currentUserDevice = await securityDeviceCollection.findOne({ userId: userId});
-
          if (!currentUserDevice) return null
 
-        // Удаление всех девайсов, кроме текущего
-        // TODO не удалвяет девайсы, потому что в рефреш токене зашита не девайс айди, а юзер айди
-        await securityDeviceCollection.deleteMany({ userId: { $ne: currentUserDevice.userId } });
+        await securityDeviceCollection.deleteMany({ userId:userId, _id: { $ne: currentUserDevice._id } });
 
     },
 
-    async deleteDeviceById(id: string) {
+    async deleteDeviceById(id: string):Promise<any> {
 
         await securityDeviceCollection.deleteOne({_id: id})
     },
 
-    async createNewDeviceAccess(user: UserAccountDBType, ip: string): Promise<DeviceDbType> {
+    async createNewDeviceAccess(user: UserAccountDBType, ip: string, userAgent: string): Promise<DeviceDbType> {
         const userId = user._id
 
         let newDeviceAccess = {
             _id: crypto.randomUUID(),
             userId: userId,
             ip: ip,
-            title: 'some string',
+            title: userAgent,
             lastActiveDate: new Date().toISOString()
         }
 
         await securityDeviceCollection.insertOne(newDeviceAccess)
 
         return newDeviceAccess
+    },
+
+    async updateDate(device: DeviceDbType, newDate: string):Promise<any>{
+        await securityDeviceCollection.updateOne({_id:device._id}, {$set: {lastActiveDate: newDate}})
     }
+
 }

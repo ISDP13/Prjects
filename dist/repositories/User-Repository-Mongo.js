@@ -64,6 +64,11 @@ exports.userRepository = {
             let result = yield db_1.usersAccountCollection.updateOne({ _id }, { $set: { 'emailConfirmation.confirmationCode': code } });
             return result.modifiedCount === 1;
         });
+    },
+    updatePassword(id, passwordHash, passwordSalt) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield db_1.usersAccountCollection.updateOne({ _id: id }, { $set: [{ passwordHash: passwordHash }, { passwordSalt: passwordSalt }, { 'accountData.passwordHash': passwordHash }] });
+        });
     }
 };
 //# sourceMappingURL=User-Repository-Mongo.js.map

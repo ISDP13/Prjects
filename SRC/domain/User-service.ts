@@ -11,6 +11,7 @@ import bcrypt from 'bcrypt';
 import {v4 as uuidv4} from 'uuid';
 import add from 'date-fns/add'
 import {emailAdapter} from "../adapters/email-adapters";
+import {recoveryCode} from "../adapters/password-recovery-via-email";
 
 
 export const userService = {
@@ -89,7 +90,6 @@ export const userService = {
         return newUser
     },
 
-
     async checkCredential (loginOrEmail: string, password: string) {
 
         const user = await userRepository.findLoginOrEmail(loginOrEmail)
@@ -116,7 +116,6 @@ export const userService = {
     async confirmEmail (code: string): Promise<boolean>{
 
         let user: UserAccountDBType | null = await userRepository.findUserByConfirmationCode(code)
-
         if(!user) return false
 
         if(user.emailConfirmation.confirmationCode === code) {
@@ -141,5 +140,37 @@ export const userService = {
         }
 
     },
+
+    async recoveryPasswordCode (email: string): Promise<any>{
+
+        const user = await userRepository.findUserByEmail(email)
+        if(!user) return null
+
+        const newCode = uuidv4()
+
+        await  userRepository.updateCode(user._id, newCode)
+
+        try {
+            await recoveryCode.sendEmail(user)
+        } catch(error){
+            console.error(error)
+            return null
+        }
+
+    },
+
+    async newPassword (recoveryCode: string, newPassword: string): Promise<any>{
+
+        const user = await userRepository.findUserByConfirmationCode(recoveryCode)
+
+        const passwordSalt = await bcrypt.genSalt(10)
+
+        const passwordHash = await this._generateHash(newPassword, passwordSalt)
+
+        await userRepository.updatePassword(user!._id, passwordHash, passwordSalt)
+
+    }
+
+
 
 }

@@ -9,29 +9,31 @@ export type AccessDbData = {
 
 export const accessRequestValidation = async (req: Request, res: Response, next: NextFunction) => {
 
-    if (!req.baseUrl) return res.sendStatus(404)
+    if (!req.originalUrl) return res.sendStatus(404)
 
     const ip = req.ip
     const currentTime = new Date()
     const tenSecondsAgo = new Date(currentTime.getTime() - 10 * 1000)
 
-    const count = await requestsToUrlCollection.countDocuments({
-        ip,
-        date: {$gte: tenSecondsAgo}
-    });
-
-    if (count >= 5) {
-        return res.sendStatus(429)
-    }
-
     const accessData = {
         ip: ip,
-        url: req.baseUrl,
+        url: req.originalUrl,
         date: currentTime
-    };
+    }
     await requestsToUrlCollection.insertOne(accessData)
 
-    next();
+    const url = req.originalUrl
 
+    const count = await requestsToUrlCollection.countDocuments({
+        ip,
+        url,
+        date: {$gte: tenSecondsAgo}
+    })
+
+    if (count > 5) {
+        return res.sendStatus(429);
+    }
+
+    next()
 
 }

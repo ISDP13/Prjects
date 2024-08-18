@@ -12,38 +12,35 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.securityDevicesRouter = void 0;
 const express_1 = require("express");
 const Security_Device_Repository_1 = require("../repositories/Security-Device-Repository");
-const db_1 = require("../db/db");
+const Refresh_Token_Middlewar_1 = require("../Middleware/Refresh-Token-Middlewar");
+const JWT_service_1 = require("../Application/JWT-service");
 exports.securityDevicesRouter = (0, express_1.Router)({});
-exports.securityDevicesRouter.get('/devices', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.securityDevicesRouter.get('/devices', Refresh_Token_Middlewar_1.refreshTokenValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken)
-        return res.sendStatus(401);
-    // TODO вынести эту хуйню с 401 ошибкой в мидлвар
-    const findRefreshToken = yield db_1.tokenBlackListCollection.findOne({ token: refreshToken });
-    if (findRefreshToken)
-        return res.sendStatus(401);
     const allDevices = yield Security_Device_Repository_1.securityDeviceRepository.findDevices(refreshToken);
+    if (!allDevices)
+        return res.sendStatus(404);
+    const userId = yield JWT_service_1.jwtService.getUserIdByRefreshToken(refreshToken);
+    if (!userId)
+        return res.sendStatus(404);
     res.status(200).send(allDevices);
 }));
-exports.securityDevicesRouter.delete('/devices', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.securityDevicesRouter.delete('/devices', Refresh_Token_Middlewar_1.refreshTokenValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken)
-        return res.sendStatus(401);
     yield Security_Device_Repository_1.securityDeviceRepository.deleteDevicesExcludeCurrent(refreshToken);
     return res.sendStatus(204);
-    //TODO Девайс айди запихнуть в рефреш токен
 }));
-exports.securityDevicesRouter.delete('/devices/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.securityDevicesRouter.delete('/devices/:id', Refresh_Token_Middlewar_1.refreshTokenValidation, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const deviceId = req.params.id;
     if (!deviceId)
         return res.sendStatus(404);
-    const refreshToken = req.cookies.refreshToken;
-    if (!refreshToken)
-        return res.sendStatus(401);
-    // TODO вынести эту хуйню с 401 ошибкой в мидлвар
-    const findRefreshToken = yield db_1.tokenBlackListCollection.findOne({ token: refreshToken });
-    if (findRefreshToken)
-        return res.sendStatus(401);
+    const device = yield Security_Device_Repository_1.securityDeviceRepository.findDeviceById(deviceId);
+    if (!device)
+        return res.sendStatus(404);
+    const getDevice = yield JWT_service_1.jwtService.findDeviceByRefreshToken(req.cookies.refreshToken);
+    // здесь надо сравнить юзер айди у девайса и юзера по рефреш токену
+    if (device.userId !== getDevice.userId)
+        return res.sendStatus(403);
     yield Security_Device_Repository_1.securityDeviceRepository.deleteDeviceById(deviceId);
     return res.sendStatus(204);
 }));

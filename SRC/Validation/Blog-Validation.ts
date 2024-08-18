@@ -1,5 +1,3 @@
-// Middleware=======================================
-
 import {body} from "express-validator";
 import {inputModelValidation} from "../inpuValidstion/inputValidationBlgsANDPsts";
 

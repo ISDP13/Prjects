@@ -12,24 +12,26 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.accessRequestValidation = void 0;
 const db_1 = require("../db/db");
 const accessRequestValidation = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!req.baseUrl)
+    if (!req.originalUrl)
         return res.sendStatus(404);
     const ip = req.ip;
     const currentTime = new Date();
     const tenSecondsAgo = new Date(currentTime.getTime() - 10 * 1000);
-    const count = yield db_1.requestsToUrlCollection.countDocuments({
-        ip,
-        date: { $gte: tenSecondsAgo }
-    });
-    if (count >= 5) {
-        return res.sendStatus(429);
-    }
     const accessData = {
         ip: ip,
-        url: req.baseUrl,
+        url: req.originalUrl,
         date: currentTime
     };
     yield db_1.requestsToUrlCollection.insertOne(accessData);
+    const url = req.originalUrl;
+    const count = yield db_1.requestsToUrlCollection.countDocuments({
+        ip,
+        url,
+        date: { $gte: tenSecondsAgo }
+    });
+    if (count > 5) {
+        return res.sendStatus(429);
+    }
     next();
 });
 exports.accessRequestValidation = accessRequestValidation;

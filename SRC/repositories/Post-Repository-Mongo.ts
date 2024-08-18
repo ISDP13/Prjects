@@ -35,7 +35,7 @@ const postMap = (post: PostsDbType): PostsOutput => {
 export const postsRepository = {
 
 
-    async PostNewPost(NewPost: PostsDbType): Promise<PostsOutput | undefined> {
+    async PostNewPost(NewPost: PostsDbType): Promise<PostsOutput> {
                await postsCollection.insertOne(NewPost)
                return postMap(NewPost)
     },

@@ -1,6 +1,7 @@
 import {UserAccountDBType, UserDbType, UserOutput} from "../queryRepositories/query-Users-Repo";
 import {DeleteResult, ObjectId} from "mongodb";
 import {userCollection, usersAccountCollection} from "../db/db";
+import {userService} from "../domain/User-service";
 
 
 export const userRepository = {
@@ -54,5 +55,10 @@ export const userRepository = {
         let result = await usersAccountCollection.updateOne({_id},{$set: {'emailConfirmation.confirmationCode': code}})
         return result.modifiedCount === 1
 
+    },
+
+    async updatePassword(id: string, passwordHash: string, passwordSalt: string){
+        await usersAccountCollection.updateOne({_id:id},{$set: [{passwordHash:passwordHash},{passwordSalt: passwordSalt},{'accountData.passwordHash': passwordHash}]})
     }
+
 }

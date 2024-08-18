@@ -17,6 +17,7 @@ const User_Repository_Mongo_1 = require("../repositories/User-Repository-Mongo")
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const uuid_1 = require("uuid");
 const email_adapters_1 = require("../adapters/email-adapters");
+const password_recovery_via_email_1 = require("../adapters/password-recovery-via-email");
 exports.userService = {
     postNewUserByAdmin(login, password, email) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -128,5 +129,29 @@ exports.userService = {
             }
         });
     },
+    recoveryPasswordCode(email) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield User_Repository_Mongo_1.userRepository.findUserByEmail(email);
+            if (!user)
+                return null;
+            const newCode = (0, uuid_1.v4)();
+            yield User_Repository_Mongo_1.userRepository.updateCode(user._id, newCode);
+            try {
+                yield password_recovery_via_email_1.recoveryCode.sendEmail(user);
+            }
+            catch (error) {
+                console.error(error);
+                return null;
+            }
+        });
+    },
+    newPassword(recoveryCode, newPassword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = yield User_Repository_Mongo_1.userRepository.findUserByConfirmationCode(recoveryCode);
+            const passwordSalt = yield bcrypt_1.default.genSalt(10);
+            const passwordHash = yield this._generateHash(newPassword, passwordSalt);
+            yield User_Repository_Mongo_1.userRepository.updatePassword(user._id, passwordHash, passwordSalt);
+        });
+    }
 };
 //# sourceMappingURL=User-service.js.map
