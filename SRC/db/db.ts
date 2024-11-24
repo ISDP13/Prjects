@@ -23,6 +23,18 @@ export const securityDeviceCollection = db.collection<DeviceDbType>('Security De
 export const requestsToUrlCollection = db.collection<any>('Amount Requests to URL')
 
 
+
+
+
+export const mobAppCollection = db.collection<any>('Mobile Application Auth')
+export const assBlockCollection = db.collection<any>('Assignment Block')
+export const inspObjCollection = db.collection<any>('Inspection Object')
+export const photosCollection = db.collection<any>('Photos')
+
+
+
+
+
 console.log(process.env.MONGO_URL)
 
 export async function runDb(){

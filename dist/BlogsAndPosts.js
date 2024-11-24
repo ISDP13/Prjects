@@ -25,6 +25,7 @@ const Auth_router_1 = require("./routes/Auth-router");
 const feedback_router_1 = require("./routes/feedback-router");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const Security_Device_router_1 = require("./routes/Security-Device_router");
+const Mobile_Application_Router_1 = require("./routes/Mobile-Application-Router");
 exports.app = (0, express_1.default)();
 exports.app.use(express_1.default.json());
 exports.app.use((0, body_parser_1.default)());
@@ -38,6 +39,10 @@ exports.app.use('/users', User_router_1.usersRouter);
 exports.app.use('/comments', feedback_router_1.feedbackRouter);
 exports.app.use('/security', Security_Device_router_1.securityDevicesRouter);
 exports.app.use('/', Delete_All_Data_router_1.DeleteAllDataRouter);
+exports.app.use('/mobileAppData', Mobile_Application_Router_1.mobAppRouter);
+exports.app.use('/assBlock', Mobile_Application_Router_1.assBlockRouter);
+exports.app.use('/inspObj', Mobile_Application_Router_1.inspObjRouter);
+exports.app.use('/photos', Mobile_Application_Router_1.photosRouter);
 exports.app.listen(port, () => __awaiter(void 0, void 0, void 0, function* () {
     console.log('Server started...........' + port);
     yield (0, db_1.runDb)();

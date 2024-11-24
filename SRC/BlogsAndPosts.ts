@@ -11,6 +11,7 @@ import {authRouter} from "./routes/Auth-router";
 import {feedbackRouter} from "./routes/feedback-router";
 import cookieParser from "cookie-parser";
 import {securityDevicesRouter} from "./routes/Security-Device_router";
+import {assBlockRouter, inspObjRouter, mobAppRouter, photosRouter} from "./routes/Mobile-Application-Router";
 
 export const app = express()
 app.use(express.json())
@@ -27,6 +28,12 @@ app.use('/users', usersRouter)
 app.use('/comments', feedbackRouter)
 app.use('/security', securityDevicesRouter)
 app.use('/', DeleteAllDataRouter)
+
+
+app.use('/mobileAppData', mobAppRouter)
+app.use('/assBlock', assBlockRouter)
+app.use('/inspObj', inspObjRouter)
+app.use('/photos', photosRouter)
 
 
 

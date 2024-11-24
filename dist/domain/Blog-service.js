@@ -24,7 +24,8 @@ exports.blogsService = {
                 createdAt: new Date().toISOString(),
                 isMembership: false
             };
-            return yield Blog_Repository_Mongo_1.BlogsRepository.PostNewBlog(newBlog);
+            const xxx = yield Blog_Repository_Mongo_1.BlogsRepository.PostNewBlog(newBlog);
+            return xxx;
             // return BlogsRepository.PostNewBlog(name, description, websiteUrl)
         });
     },

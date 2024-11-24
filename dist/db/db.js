@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.runDb = exports.requestsToUrlCollection = exports.securityDeviceCollection = exports.tokenBlackListCollection = exports.usersAccountCollection = exports.feedbackCollection = exports.userCollection = exports.postsCollection = exports.blogCollection = exports.db = exports.client = void 0;
+exports.runDb = exports.photosCollection = exports.inspObjCollection = exports.assBlockCollection = exports.mobAppCollection = exports.requestsToUrlCollection = exports.securityDeviceCollection = exports.tokenBlackListCollection = exports.usersAccountCollection = exports.feedbackCollection = exports.userCollection = exports.postsCollection = exports.blogCollection = exports.db = exports.client = void 0;
 const mongodb_1 = require("mongodb");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -27,6 +27,10 @@ exports.usersAccountCollection = exports.db.collection('UsersAccounts');
 exports.tokenBlackListCollection = exports.db.collection('Token_Black_List');
 exports.securityDeviceCollection = exports.db.collection('Security Devices');
 exports.requestsToUrlCollection = exports.db.collection('Amount Requests to URL');
+exports.mobAppCollection = exports.db.collection('Mobile Application Auth');
+exports.assBlockCollection = exports.db.collection('Assignment Block');
+exports.inspObjCollection = exports.db.collection('Inspection Object');
+exports.photosCollection = exports.db.collection('Photos');
 console.log(process.env.MONGO_URL);
 function runDb() {
     return __awaiter(this, void 0, void 0, function* () {
